@@ -32,6 +32,18 @@ As a microservices developer, I need to:
 - `STREET_NAME`, `BUILDING_NO`, `BUILDING_NAME`, `FLOOR`, `POST_BOX`, `ROOM`
 - `POST_CODE`, `TOWN_NAME`, `TOWN_LOCATION_NAME`, `DISTRICT_NAME`, `COUNTRY_SUB_DIVISION`, `COUNTRY_CODE`
 
+#### **Sample Data:**
+- PARTY_LEI:  
+  - `SMBCHY5`  
+  - `SMBCNY645P`  
+  - `SMBCGB2P`  
+  - `ABC12312312312312398`  
+  - `01234567890123456789`  
+  - `77777777777777777777`
+- DEPARTMENT_NAME, SUB_DEPARTMENT:  
+  - `Payee Department, Payee Sub department`  
+  - `Dept A, Dept AB`
+
 #### **Payment Fields:**
 - `TRANSACTION_ID`
 - `AMEND_TRANSACTION_ID`
@@ -45,11 +57,19 @@ As a microservices developer, I need to:
 - `BENEF_BANK_RU_CODE`
 - `PAYEE_TEMPLATE_NAME`
 
+#### **Sample Data:**
+- BENEF_INN:  
+  - `INN123`  
+  - `INN324`
+- BENEF_BANK_RU_CODE:  
+  - `BENRU1212`  
+  - `BENRU3434`
+
 #### **Payment Fields:**
 - `DEBIT_ACCOUNT_CURRENCY_CODE`
 - `DEBIT_ACCOUNT_NUMBER`
 - `DELIVER_CURRENCY_CODE`
-- `DETAILS_OF_PAYMENT_LINE1` - `DETAILS_OF_PAYMENT_LINE4`
+- `DETAILS_OF_PAYMENT_LINE1 - DETAILS_OF_PAYMENT_LINE4`
 - `DETAILS_OF_CHARGES`
 - `CNAPS_CODE`
 - `PURPOSE_CODE`
@@ -58,11 +78,29 @@ As a microservices developer, I need to:
 - `WIRE_LIMIT`
 - `GUARANTEE_OUR`
 
+#### **Sample Data:**
+- DEBIT_ACCOUNT_CURRENCY_CODE:  
+  - `USD`  
+  - `EUR`  
+  - `CNY`
+- DETAILS_OF_CHARGES:  
+  - `Vendor Payment`  
+  - `Invoice Payment`  
+  - `Supplier`
+- PRE_ADVICE:  
+  - `Y`  
+  - `N`
+
 ---
 
 ### **3. GCMSOWNER.WIRE_PAYEE_IMP_PARAMS**
 #### **Beneficiary Fields:**
 - `IS_BENEFICIARYBANK_POPULATED`
+
+#### **Sample Data:**
+- IS_BENEFICIARYBANK_POPULATED:  
+  - `Yes`  
+  - `No`
 
 #### **Payment Fields:**
 - `PAYEE_TEMPLATE_ID`
@@ -70,6 +108,14 @@ As a microservices developer, I need to:
 - `CHARGES_UPDATED`
 - `IS_AMBIGUOUS_ACCOUNT_NUMBER`
 - `FAILURE_KEY`
+
+#### **Sample Data:**
+- HAS_SPECIAL_CHARS:  
+  - `Y`  
+  - `N`
+- CHARGES_UPDATED:  
+  - `Yes`  
+  - `No`
 
 ---
 
@@ -85,6 +131,20 @@ As a microservices developer, I need to:
 - `WIRE_LIMIT`
 - `PRE_ADVICE`
 
+#### **Sample Data:**
+- FROM_ACCOUNT:  
+  - `689515`  
+  - `287669`
+- FROM_CURRENCY_CODE:  
+  - `JPY`  
+  - `GBP`  
+  - `USD`
+- FUNDS_TYPE:  
+  - `B`  
+  - `M`  
+  - `S`  
+  - `I`
+
 #### **Beneficiary Fields:**
 - `PAYEE_TEMPLATE_ID`
 - `BENEF_ACCOUNT_NUMBER`
@@ -98,48 +158,32 @@ As a microservices developer, I need to:
 - `PURPOSE_CODE`
 - `CNAPS_CODE`
 
+#### **Sample Data:**
+- BENEF_BANK_FUNDS_TYPE:  
+  - `S`  
+  - `ACCOUNT`
+
 ---
 
 ### **5. GCMSOWNER.GCMS_WIRE_AMENDMENT**
-#### **Payment Details:**
+#### **Payment Fields:**
 - `DEBIT_ACCOUNT_NUMBER`
 - `FUNDS_TYPE`
 - `VALUE_DATE`
 - `DETAILS_OF_CHARGES`
 - `OUR_REFERENCE`
-- `DETAILS_OF_PAYMENT_LINE1` - `DETAILS_OF_PAYMENT_LINE4`
+- `DETAILS_OF_PAYMENT_LINE1 - DETAILS_OF_PAYMENT_LINE4`
 
-#### **Beneficiary Details:**
-- `BENEF_CUST_NAME`
-- `BENEF_CUST_ID`
-- `BENEF_CUST_ADDRESS_LINE1 - LINE3`
-
-#### **Other Key Details:**
-- `BY_ORDER_OF_CUST_NAME`
-- `BY_ORDER_OF_CUST_ADDR1 - ADDR3`
-- `BENEF_INN`
-- `BENEF_BANK_RU_CODE`
-
----
-
-### **6. GCMSOWNER.GCMS_WIRE_AUTHORISE_DETAIL**
-- No direct payment or beneficiary fields.
-- Contains approval-related metadata.
-
----
-
-### **7. GCMSOWNER.GCMS_WIRE_AUTHORISE_MASTER**
-- No direct payment or beneficiary fields.
-- Contains authorization-related metadata.
-
----
-
-### **8. GCMSOWNER.GCMS_WIRE_CURRENCY_CATEGORY**
-#### **Payment Details:**
-- `CURRENCY`
-
-#### **Beneficiary Details:**
-- None
+#### **Sample Data:**
+- VALUE_DATE:  
+  - `01-JAN-19 12.00.00.000000000 AM`  
+  - `03-JUL-24 11.00.00.000000000 AM`
+- DETAILS_OF_CHARGES:  
+  - `OUR`  
+  - `BEN`
+- OUR_REFERENCE:  
+  - `Testing123`  
+  - `POP PXC`
 
 ---
 
@@ -150,8 +194,16 @@ As a microservices developer, I need to:
 - `DELIVER_CURRENCY_CODE`
 - `FUNDS_TYPE`
 - `CHARGES_CODE`
-- `DETAILS_OF_PAYMENT_LINE1` - `DETAILS_OF_PAYMENT_LINE3`
-- `BANK_TO_BANK_LINE1` - `BANK_TO_BANK_LINE3`
+- `DETAILS_OF_PAYMENT_LINE1 - DETAILS_OF_PAYMENT_LINE3`
+- `BANK_TO_BANK_LINE1 - BANK_TO_BANK_LINE3`
+
+#### **Sample Data:**
+- FROM_ACCOUNT:  
+  - `151515`  
+  - `317074`
+- DETAILS_OF_PAYMENT_LINE1:  
+  - `Invoice Payment`  
+  - `Supplier Payment`
 
 #### **Beneficiary Fields:**
 - `BENEF_ID`
@@ -164,39 +216,10 @@ As a microservices developer, I need to:
 - `BENEF_BANK_NAME`
 - `BENEF_BANK_ADDRESS_LINE1 - LINE3`
 
-#### **Other Key Details:**
-- `BY_ORDER_OF_NAME`
-- `BY_ORDER_OF_ADDRESS1 - ADDRESS3`
-- `RECV_CORR_NAME`
-- `RECV_CORR_ADDRESS_LINE1 - LINE3`
-- `TRANSACTION_REFERENCE_NUMBER`
-- `WIRE_LIMIT`
-- `CNAPS_CODE`
-- `BUSINESS_CATEGORY`
-
----
-
-## **Key Findings**
-### **Payment Information:**
-1. **Transaction References:**  
-   - `TRANSACTION_ID`, `AMEND_TRANSACTION_ID`, `TRANSACTION_REFERENCE_NUMBER`
-2. **Account and Currency Details:**  
-   - `FROM_ACCOUNT`, `DEBIT_ACCOUNT_NUMBER`, `DEBIT_ACCOUNT_CURRENCY_CODE`, `DELIVER_CURRENCY_CODE`
-3. **Charges and Limits:**  
-   - `DETAILS_OF_CHARGES`, `CHARGES_CODE`, `WIRE_LIMIT`, `GUARANTEE_OUR`
-4. **Compliance and Routing:**  
-   - `CNAPS_CODE`, `PURPOSE_CODE`, `PRE_ADVICE`
-5. **Payment Instructions:**  
-   - `DETAILS_OF_PAYMENT_LINE1` - `DETAILS_OF_PAYMENT_LINE4`
-
----
-
-### **Beneficiary Information:**
-1. **Core Beneficiary Info:**  
-   - `PARTY_NAME`, `PARTY_ID`, `PARTY_ID_TYPE`, `PAYEE_TEMPLATE_NAME`, `BENEF_NAME`
-2. **Address and Location:**  
-   - `STREET_NAME`, `BUILDING_NO`, `POST_CODE`, `COUNTRY_CODE`, `BENEF_ADDRESS_LINE1` - `LINE3`
-3. **Bank Details:**  
-   - `BENEF_BANK_ACCOUNT_NUMBER`, `BENEF_BANK_RU_CODE`, `IS_BENEFICIARYBANK_POPULATED`
-4. **Compliance Info:**  
-   - `PARTY_LEI`, `BENEF_INN`
+#### **Sample Data:**
+- BENEF_NAME:  
+  - `LN Account Title 1 OEAITCERPY`  
+  - `NY Account Title 2 SSTEIUGESL`
+- RECV_CORR_NAME:  
+  - `JPMORGAN CHASE BANK, LA`  
+  - `CHIPS TEST ABA`
