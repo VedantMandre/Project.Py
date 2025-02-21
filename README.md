@@ -1,31 +1,29 @@
-# Objective
+# Proof of Concept: On-Premises Oracle to Azure Blob Storage via ADF
 
-The goal of this Proof of Concept (PoC) is to set up a structured data storage system and an automated pipeline to extract data from an on-premises Oracle database, store it in Azure Blob Storage, process it, and insert it into a PostgreSQL database.
+## Objective
 
-# Scope
+This Proof of Concept (PoC) aims to establish a structured data storage system in Azure Blob Storage and an automated pipeline using Azure Data Factory (ADF) to extract data from an on-premises Oracle database, process it, and prepare it for ingestion into an Azure PostgreSQL database. The solution ensures efficient data handling, incremental loading, and scalability within the constraints of available resources.
 
-Storage Account Access: The solution will be implemented using Azure Blob Storage.
+## Scope
 
-Azure Data Factory (ADF) Access: The pipeline will be built using ADF for data movement and transformation.
+- **Storage Account Access**: Utilize Azure Blob Storage for data storage.
+- **Azure Data Factory (ADF) Access**: Leverage ADF for data extraction, transformation, and movement.
+- **No Additional Services**: Limit the solution to ADF and Blob Storage, avoiding Data Lakes or other Azure services.
+- **Oracle Connectivity**: Assume the cloud team will configure the Self-Hosted Integration Runtime (SHIR) for on-premises Oracle access.
 
-No Data Lakes or Additional Services: The solution will work strictly within the limits of available resources.
+## Objective 1: Structuring Data Storage & Access Setup
 
-# Objective 1: Structuring Data Storage & Access Setup
+### 1. Storage Account Structure
+
+A well-defined storage structure ensures organized data management and easy access for multiple purposes (e.g., sales, FX rates). The proposed structure is as follows:
+
+#### Containers & Purpose
+- **`landing/`**: Stores raw data extracted from Oracle.
+- **`processed/`**: Stores transformed data ready for PostgreSQL ingestion.
+- **`control/`**: Stores metadata files for tracking incremental loads (e.g., timestamps).
+
+#### Folder Structure
 ```
-1. Storage Account Structure
-
-A well-defined storage structure ensures easy access and organization. The following naming conventions and folder structures will be used:
-
-Containers & Purpose:
-
-landing/ → Stores raw data extracted from Oracle.
-
-processed/ → Stores transformed data ready for PostgreSQL ingestion.
-
-control/ → Stores metadata files, including tracking timestamps for incremental loads.
-
-Folder Structure Example:
-
 landing/
   oracle/
     sales/
@@ -42,96 +40,89 @@ control/
   oracle/
     sales_data_watermark.json
 ```
-# File Naming Convention:
 
-Data files: sales_data_[YYYYMMDDHHMM].csv (e.g., sales_data_202502201230.csv)
+#### File Naming Convention
+- **Data Files**: `[table_name]_[YYYYMMDDHHMM].csv` (e.g., `sales_data_202502201230.csv`).
+- **Watermark File**: `sales_data_watermark.json` (e.g., a JSON file with table name and last load timestamp).
 
-Watermark file: sales_data_watermark.json (e.g., {"table_name": "sales_data", "last_load_time": "2025-02-20 12:30:00"})
+This structure aligns with the existing CMS application architecture and supports scalability for additional data types or sources.
 
-2. Access Setup
+### 2. Access Setup
 
-Azure Role-Based Access Control (RBAC) will be used to define who can read, write, and manage files.
+- **Azure Role-Based Access Control (RBAC)**:
+  - Database Team: Full access to `landing`, `processed`, and `control` containers.
+  - ADF Service: Write access to `landing` and `control` containers; read access to `control` for watermark tracking.
+- **Collaboration**: Coordinate with the cloud team to configure RBAC and ensure ADF connectivity to Blob Storage via access keys or SAS tokens.
+- **Tools**: Teams can access data via Azure Storage Explorer or integrate with Power BI for validation.
 
-ADF Access: ADF will be granted permission to write to the landing and control containers.
+## Objective 2: Creating an ADF Pipeline to Process Data
 
-Storage Access: Teams can access data via Azure Storage Explorer or Power BI.
+### Pipeline Overview
 
-Objective 2: Creating an ADF Pipeline to Process Data
+The ADF pipeline will:
+1. Extract selective columns from an on-premises Oracle table.
+2. Save raw data as CSV files in the `landing/` container.
+3. Apply a simple transformation (e.g., filter based on business rules).
+4. Store transformed data in the `processed/` container.
+5. Prepare data for PostgreSQL ingestion (to be handled separately).
+6. Update the watermark file in the `control/` container for incremental loading.
 
-# Pipeline Overview
+### Steps to Build the ADF Pipeline
 
-Extract selective columns from Oracle (sale_id, sale_amount, last_updated_date)
+1. **Create Linked Services in ADF**:
+   - **OracleLinkedService**: Connects to the on-premises Oracle database via SHIR (managed by the cloud team).
+   - **BlobStorageLinkedService**: Connects to Azure Blob Storage using access keys or SAS tokens.
+   - **PostgreSQLLinkedService**: Placeholder for future PostgreSQL integration (to be configured later).
 
-Save the data as a CSV file in Blob Storage (landing/oracle/sales/YYYY/MM/DD/)
+2. **Create Datasets**:
+   - **OracleSourceDataset**: Represents the Oracle table with selective columns and incremental load logic.
+   - **BlobSinkDataset**: Defines the CSV output in the `landing/` container.
+   - **ProcessedBlobDataset**: Defines the transformed CSV output in the `processed/` container.
+   - **ControlDataset**: Manages the watermark metadata in the `control/` container.
 
-Perform a simple transformation (e.g., filter out sale_amount < 500)
+3. **Define Pipeline Logic**:
+   - **LookupWatermark**: Reads the last processed timestamp from the watermark file.
+   - **CopyOracleToBlob**: Extracts new or updated data from Oracle and writes it to the `landing/` container.
+   - **TransformData**: Applies a basic transformation (e.g., filtering records based on a threshold).
+   - **CopyToProcessed**: Saves transformed data to the `processed/` container.
+   - **UpdateWatermark**: Updates the watermark file with the latest processed timestamp.
 
-Store the processed file in the processed/ container
+### Incremental Loading
+- Use a watermark-based approach (e.g., a timestamp column) to identify new or updated records.
+- Store the last processed timestamp in the `control/` container for each table.
 
-Insert transformed data into PostgreSQL
+## Testing & Validation
 
-Update the control file with the latest processed timestamp
+### 1. Test Data Generation
+- Insert sample data into the Oracle table to simulate real-world scenarios (to be coordinated with the Oracle DBA team).
 
-# Steps to Build the ADF Pipeline
+### 2. Pipeline Execution & Verification
+- Run the ADF pipeline manually.
+- Validate raw data in the `landing/` container.
+- Confirm transformed data in the `processed/` container meets business rules.
+- Check the watermark file in the `control/` container for an updated timestamp.
 
-1. Create Linked Services in ADF
+## Acceptance Criteria
 
-OracleLinkedService: Connects to the on-premises Oracle database using a Self-Hosted Integration Runtime (SHIR).
+- ✅ **Storage Structure Created**: `landing/`, `processed/`, and `control/` containers exist in Azure Blob Storage with the defined folder structure.
+- ✅ **Access Granted**: ADF and the database team have appropriate permissions to read/write to Blob Storage.
+- ✅ **Pipeline Success**: ADF pipeline extracts, processes, and stores data as expected.
+- ✅ **Incremental Loading**: Pipeline processes only new or updated records based on the watermark.
+- ✅ **Documentation**: Comprehensive setup details provided (this README).
 
-BlobStorageLinkedService: Connects to the Azure Blob Storage using access keys or SAS tokens.
+## Next Steps
 
-PostgreSQLLinkedService: Connects to the PostgreSQL database.
+- **Cloud Team Collaboration**: Finalize SHIR setup for Oracle connectivity.
+- **PostgreSQL Integration**: Extend the pipeline to load data from `processed/` into PostgreSQL (requires PostgreSQL access).
+- **Monitoring**: Add error handling and ADF monitoring (e.g., alerts for pipeline failures).
+- **Scaling**: Test with additional tables or data types (e.g., FX rates).
 
-2. Create Datasets
+## Documentation
 
-OracleSourceDataset (Table: sales_data with query for incremental loading)
+This README serves as the primary documentation, covering:
+- Storage setup and naming conventions.
+- Access control requirements.
+- ADF pipeline design and objectives.
+- Testing and validation steps.
 
-BlobSinkDataset (Writes CSV files to Blob Storage)
-
-ProcessedBlobDataset (For transformed files)
-
-ControlDataset (Stores watermark metadata)
-
-3. Define Pipeline Logic
-
-LookupWatermark: Reads control/sales_data_watermark.json to get the last processed timestamp.
-
-CopyOracleToBlob: Extracts data from Oracle based on last_updated_date and writes it to Blob Storage.
-
-TransformData: Filters records where sale_amount > 500 (using ADF Data Flow or Stored Procedure in PostgreSQL).
-
-CopyToPostgreSQL: Loads transformed data into PostgreSQL.
-
-UpdateWatermark: Updates sales_data_watermark.json with the latest timestamp.
-```
-Example SQL Query for Incremental Loading
-
-SELECT sale_id, sale_amount, last_updated_date
-FROM sales_data
-WHERE last_updated_date > TO_TIMESTAMP('@{pipeline().parameters.LastLoadTime}', 'YYYY-MM-DD HH24:MI:SS')
-```
-Testing & Validation
-
-1. Insert Test Data into Oracle
-```
-INSERT INTO sales_data
-SELECT
-  LEVEL as sale_id,
-  ROUND(DBMS_RANDOM.VALUE(100, 1000), 2) as sale_amount,
-  SYSDATE as last_updated_date
-FROM DUAL
-CONNECT BY LEVEL <= 100;
-```
-2. Run Pipeline & Verify Output
-
-Check the landing container for sales_data_YYYYMMDDHHMM.csv.
-
-Ensure only filtered data appears in processed container.
-
-Verify PostgreSQL table contains the transformed data.
-
-Confirm sales_data_watermark.json has updated timestamp.
-
-# Acceptance Criteria
-
-✅ Storage Structure Created: landing/, processed/, and control/ containers exist in Azure Blob Storage.✅ Access Granted: ADF and relevant teams have proper permissions.✅ Pipeline Successfully Extracts and Processes Data: Oracle to Blob, simple transformation, and PostgreSQL insertion work as expected.✅ Incremental Loading Works: Only new/updated records are processed.✅ Documentation Completed: Includes storage setup, access controls, pipeline design, and testing steps.
+For detailed ADF pipeline configuration, refer to the ADF portal or coordinate with the cloud team for SHIR-specific settings.
