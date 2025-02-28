@@ -30,3 +30,12 @@ The data from the Parquet file was successfully loaded into the deposit.test_td_
 The data transformation and loading process is fully automated with two pipelines:
 Transform_pipeline: Transforms and stores data as a Parquet file.
 Load_to_DB_pipeline: Loads the transformed data into the PostgreSQL database.
+
+```
+UPDATE your_table
+SET total_exact_days = 
+    (EXTRACT(YEAR FROM AGE(due_date::DATE, as_of_date)) * 365) + 
+    (EXTRACT(MONTH FROM AGE(due_date::DATE, as_of_date)) * 30) + 
+    (EXTRACT(DAY FROM AGE(due_date::DATE, as_of_date)))
+WHERE as_of_date IS NOT NULL AND due_date IS NOT NULL;
+```
