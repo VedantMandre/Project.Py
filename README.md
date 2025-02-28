@@ -44,9 +44,12 @@ WHERE as_of_date IS NOT NULL AND due_date IS NOT NULL;
 SELECT 
     as_of_date, 
     due_date, 
-    (EXTRACT(YEAR FROM AGE(due_date::DATE, as_of_date)) * 365) + 
-    (EXTRACT(MONTH FROM AGE(due_date::DATE, as_of_date)) * 30) + 
-    (EXTRACT(DAY FROM AGE(due_date::DATE, as_of_date))) AS total_exact_days
-FROM your_table
+    CAST(
+        (EXTRACT(YEAR FROM AGE(due_date::DATE, as_of_date)) * 365) + 
+        (EXTRACT(MONTH FROM AGE(due_date::DATE, as_of_date)) * 30) + 
+        (EXTRACT(DAY FROM AGE(due_date::DATE, as_of_date))) 
+    AS INTEGER) AS total_exact_days
+FROM deposit.test_td_rollover
 WHERE as_of_date IS NOT NULL AND due_date IS NOT NULL;
+
 ```
