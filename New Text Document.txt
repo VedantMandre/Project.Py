@@ -1,0 +1,114 @@
+🚀 Workflow Steps
+1️⃣ Modify Table Structure to Include a Unique Identifier
+Since there is no clear primary key, we will:
+
+Add a UUID-based unique identifier (id column).
+Ensure the table is properly distributed for optimal performance.
+sql
+Copy
+Edit
+-- Enable UUID Extension (if not enabled already)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Add a Unique Identifier Column
+ALTER TABLE deposit.test2_td_rollover 
+ADD COLUMN id UUID DEFAULT uuid_generate_v4();
+🔹 Why?
+
+Ensures uniqueness across distributed nodes.
+Solves the problem of tracking individual rows.
+2️⃣ Define Distribution Strategy
+Since this is a Citus (Azure Cosmos DB for PostgreSQL) distributed table, we need to define a distribution column that will help with performance.
+
+We cannot distribute by id (UUID) since it's randomly generated.
+Instead, we create a hash-based key using business logic.
+sql
+Copy
+Edit
+-- Add a hash-based column
+ALTER TABLE deposit.test2_td_rollover 
+ADD COLUMN distribution_key TEXT;
+
+-- Populate the column with a hashed combination of relevant fields
+UPDATE deposit.test2_td_rollover 
+SET distribution_key = md5(contract_number || modify_version || leg_no || random()::text);
+
+-- Distribute the table based on the distribution key
+SELECT create_distributed_table('deposit.test2_td_rollover', 'distribution_key');
+🔹 Why?
+
+Avoids data skew in distributed environments.
+Improves query performance by ensuring proper partitioning.
+3️⃣ Data Ingestion Pipeline
+You are working with Azure Data Factory (ADF) and Azure Blob Storage to move on-prem Oracle DB to PostgreSQL. Here's how we should handle data in the pipeline:
+
+Extract Data from Oracle (On-Prem)
+
+Use ADF with Self-Hosted Integration Runtime (SHIR) to connect to Oracle.
+Extract data incrementally using last_updated_date.
+Transform & Load into Azure Blob Storage
+
+Store raw data in Blob Storage in structured folders:
+bash
+Copy
+Edit
+/landing/
+/processed/
+/control/
+Maintain a control file to track incremental loads.
+Ingest Processed Data into PostgreSQL
+
+Use ADF Data Flows to:
+Map data to PostgreSQL columns.
+Ensure id (UUID) is generated automatically.
+Compute distribution_key before inserting.
+Load data using PolyBase or COPY command for efficiency.
+4️⃣ Querying Data Efficiently
+Since data is distributed, use Citus-aware queries for performance:
+
+✅ Identify Uniqueness Per Query Session
+
+sql
+Copy
+Edit
+SELECT *, row_number() OVER () AS row_id
+FROM deposit.test2_td_rollover;
+✅ Efficiently Search for Records
+
+sql
+Copy
+Edit
+SELECT * 
+FROM deposit.test2_td_rollover 
+WHERE distribution_key = md5('your_value_here');
+✅ Parallel Processing with Citus
+
+sql
+Copy
+Edit
+SET citus.enable_parallel_query = true;
+🎯 Summary
+Step	Action
+✅ Modify Table	Add UUID id column for uniqueness
+✅ Distribute Data	Use distribution_key for even partitioning
+✅ Extract Data	Use ADF + SHIR to fetch from Oracle
+✅ Transform & Load	Store in Azure Blob Storage, then move to PostgreSQL
+✅ Query Efficiently	Use Citus-aware queries for better performance
+Next Steps for You
+1️⃣ Modify your table as per Step 1 & Step 2.
+2️⃣ Adjust your ADF pipeline to ensure UUID & Distribution Key generation.
+3️⃣ Test the ingestion & query performance improvements.
+
+Let me know if you need help implementing specific parts! 🚀🔥
+
+
+
+
+
+
+
+
+
+
+
+
