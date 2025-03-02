@@ -1,7 +1,7 @@
 ```
 SELECT 
-    md5(random()::TEXT || clock_timestamp()::TEXT) AS id,  -- Generate Unique ID
-    md5(contract_number::TEXT || modify_version::TEXT || leg_no::TEXT || random()::TEXT) AS distribution_key, 
+    encode(digest(random()::TEXT || clock_timestamp()::TEXT, 'sha256'), 'hex') AS id, -- FIPS-compliant unique key
+    encode(digest(contract_number::TEXT || modify_version::TEXT || leg_no::TEXT || random()::TEXT, 'sha256'), 'hex') AS distribution_key, 
     contract_number,
     modify_version,
     leg_no,
@@ -12,6 +12,7 @@ SELECT
     bank_ref,
     currency_code
 FROM deposit.test2_td_rollover;
+
 ```
 
 ```
