@@ -1,0 +1,90 @@
+# **Data Transformation and Loading from Azure Blob Storage to Azure Cosmos DB for PostgreSQL**
+
+## **1. Overview**
+This document outlines the **end-to-end process** for transforming and loading data from **Azure Blob Storage** into **Azure Cosmos DB for PostgreSQL** using **Azure Data Factory (ADF)**. The objective is to establish an automated data pipeline for efficient storage, transformation, and loading of data into the PostgreSQL database. Additionally, a **proof of concept (PoC) pipeline** has been implemented to verify **PostgreSQL-to-PostgreSQL** data movement, simulating a future Oracle-to-PostgreSQL migration.
+
+---
+
+## **2. Workflow Summary**
+The workflow consists of **three main pipelines**:
+1. **TransformPipeline**: Extracts, transforms, and stores data as a **Parquet file** in **Azure Blob Storage**.
+2. **LoadPipeline**: Loads the transformed Parquet file into an **Azure Cosmos DB for PostgreSQL table**.
+3. **PoC_Pipeline (PostgreSQL-to-PostgreSQL Data Transfer)**: Transfers **partial data** between two PostgreSQL tables, simulating an Oracle-to-PostgreSQL migration.
+
+---
+
+## **3. Blob Storage Structure**
+### **Input File Details**
+- **File Name:** `timedeposit_2025-02-21.csv`
+- **Storage Location:** `Azure Blob Storage (Container: incoming-data/timedeposit)`
+
+---
+
+## **4. Data Transformation Process**
+### **Source File**
+- The **raw data** is stored in **CSV format** in **Azure Blob Storage**.
+
+### **Data Flow**
+1. **Derived Column Transformation:**
+   - Data cleaning and processing are performed using ADF **Data Flow**.
+2. **Output Format:**
+   - The transformed data is stored in **Parquet format** for optimized storage and querying.
+
+### **Pipeline Details**
+- **Pipeline Name:** `TransformPipeline`
+- **Process:**
+  - Reads the **CSV file** from Blob Storage.
+  - Applies transformations.
+  - Stores the **cleaned data** in **Parquet format** in Blob Storage.
+
+---
+
+## **5. Loading Data to Azure Cosmos DB for PostgreSQL**
+### **Destination Table**
+- **Table Name:** `timedeposit_rollover` (in Azure Cosmos DB for PostgreSQL)
+
+### **Pipeline Details**
+- **Pipeline Name:** `LoadPipeline`
+- **Process:**
+  - Reads the transformed **Parquet file** from Blob Storage.
+  - Loads the data into the **PostgreSQL table** in Azure Cosmos DB.
+
+### **Execution Outcome**
+✅ **Data from the Parquet file was successfully loaded** into the `timedeposit_rollover` table in **Azure Cosmos DB for PostgreSQL**.
+
+---
+
+## **6. PostgreSQL-to-PostgreSQL Proof of Concept Pipeline**
+To prepare for a future **Oracle-to-PostgreSQL migration**, a proof-of-concept pipeline was created to test data movement within PostgreSQL.
+
+### **Pipeline Details**
+- **Pipeline Name:** `PoC_Pipeline`
+- **Source Table:** `deposit.test_td_rollover` (Azure Cosmos DB for PostgreSQL)
+- **Destination Table:** `deposit.test2_td_rollover` (Azure Cosmos DB for PostgreSQL)
+- **Query Used:**
+  - A **SELECT query** was applied to extract **partial data** from `deposit.test_td_rollover` and insert it into `deposit.test2_td_rollover`.
+  
+### **Objective**
+- Since **ADF connectivity to Oracle DB is still pending**, this PoC validates ADF’s ability to move data between PostgreSQL tables.
+- The same approach will be used when **Oracle-to-PostgreSQL** migration is enabled.
+
+### **Execution Outcome**
+✅ **Partial data was successfully transferred** between PostgreSQL tables, demonstrating the feasibility of ADF-based migrations.
+
+---
+
+## **7. Final Outcome & Next Steps**
+The entire process is now **automated and structured** with three pipelines:
+1. **TransformPipeline:** Converts CSV data into a structured **Parquet file**.
+2. **LoadPipeline:** Loads **transformed data** into **Azure Cosmos DB for PostgreSQL**.
+3. **PoC_Pipeline:** Validates **PostgreSQL-to-PostgreSQL** data transfer as a precursor to an **Oracle-to-PostgreSQL** migration.
+
+### **Next Steps**
+🔹 **Enable Oracle DB connectivity** to ADF for real-time Oracle-to-PostgreSQL migration.
+🔹 **Scale the PoC pipeline** to handle full-scale data migration.
+🔹 **Implement data validation and monitoring** for improved pipeline efficiency.
+
+---
+
+This documentation provides a clear, structured approach to our ADF-based data transformation and migration strategy, ensuring a seamless transition for stakeholders and future implementations.
+
