@@ -76,3 +76,26 @@ AND s.leg_no = d.leg_no
 WHERE s.id <> d.id;  -- If hash changed, it's an update (new version)
 
 ```
+```
+WITH generated_ids AS (
+    SELECT 
+        contract_number,
+        modify_version,
+        leg_no,
+        -- Generate the unique 'id' for each row
+        encode(digest(
+            contract_number::TEXT || 
+            COALESCE(modify_version::TEXT, '') || 
+            COALESCE(leg_no::TEXT, '') || 
+            random()::TEXT || 
+            clock_timestamp()::TEXT, 
+            'sha256'), 'hex') AS id  -- FIPS-compliant unique key
+    FROM deposit.test2_td_rollover
+)
+UPDATE deposit.test2_td_rollover t
+SET id = g.id  -- Update the 'id' column with the unique value
+FROM generated_ids g
+WHERE t.contract_number = g.contract_number
+  AND t.modify_version = g.modify_version
+  AND t.leg_no = g.leg_no;
+```
