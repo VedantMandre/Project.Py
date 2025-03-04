@@ -1,11 +1,12 @@
 ```
-SELECT 
-    encode(digest(contract_number::TEXT || modify_version::TEXT || leg_no::TEXT || 
-                  as_of_date::TEXT || obs_number::TEXT || data_date::TEXT || 
-                  contract_date::TEXT || bank_ref::TEXT || currency_code::TEXT, 'sha256'), 'hex') 
-    AS id,  
-    contract_number, modify_version, leg_no, as_of_date, obs_number, data_date, contract_date, bank_ref, currency_code
-FROM deposit.test_td_rollover;
+UPDATE deposit.test_td_rollover 
+SET id = encode(digest(
+        contract_number::TEXT || COALESCE(modify_version::TEXT, '') || 
+        COALESCE(leg_no::TEXT, '') || COALESCE(as_of_date::TEXT, '') || 
+        COALESCE(obs_number::TEXT, '') || COALESCE(data_date::TEXT, '') || 
+        COALESCE(contract_date::TEXT, '') || COALESCE(bank_ref::TEXT, '') || 
+        COALESCE(currency_code::TEXT, '') || clock_timestamp()::TEXT || random()::TEXT, 
+        'sha256'), 'hex');
 ```
 
 ```
