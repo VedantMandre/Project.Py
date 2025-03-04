@@ -23,6 +23,36 @@ SELECT
     currency_code
 FROM deposit.test2_td_rollover;
 ```
+```
+SELECT 
+    -- Generate a unique id by combining random, timestamp, and row-specific columns
+    encode(digest(
+        contract_number::TEXT || 
+        COALESCE(modify_version::TEXT, '') || 
+        COALESCE(leg_no::TEXT, '') || 
+        random()::TEXT || 
+        clock_timestamp()::TEXT, 
+        'sha256'), 'hex') AS id,  -- FIPS-compliant unique key
+    
+    -- Distribution key based on the combination of relevant fields
+    encode(digest(
+        contract_number::TEXT || 
+        COALESCE(modify_version::TEXT, '') || 
+        COALESCE(leg_no::TEXT, '') || 
+        random()::TEXT, 
+        'sha256'), 'hex') AS distribution_key, 
+    
+    contract_number,
+    modify_version,
+    leg_no,
+    as_of_date,
+    obs_number,
+    data_date,
+    contract_date,
+    bank_ref,
+    currency_code
+FROM deposit.test2_td_rollover;
+```
 
 ```
 -- DELETE records from destination if they don't exist in source
