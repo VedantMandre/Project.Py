@@ -74,3 +74,67 @@ WHEN NOT MATCHED THEN
         CAST(src.done_time AS TIMESTAMP), CAST(src.update_time AS TIMESTAMP)
     );
 ```
+```
+INSERT INTO deposit.new_td_rollover (
+    trade_number, investment_type, start_date, maturity_date, tenor, currency,
+    interest_rate, maturity_status, reference_number, old_reference_number,
+    time_deposit_amount, time_deposit_account_number, settlement_account_number, frequency,
+    interest_accrued_till_date, interest_at_maturity, branch, trade_type, funding_source,
+    obs_code, sun_id, client_name, account_official_name, done_time, update_time
+)
+SELECT 
+    src.trade_number, snc.investment_type,
+    CAST(sc.start_date AS DATE) AS start_date, 
+    CAST(sc.maturity_date AS DATE) AS maturity_date, 
+    CAST(sc.tenor AS INTEGER) AS tenor, 
+    spc.currency,
+    CAST(sc.interest_rate AS DECIMAL(20,2)) AS interest_rate, 
+    CAST(sc.maturity_status AS VARCHAR) AS maturity_status, 
+    CAST(sc.reference_number AS INTEGER) AS reference_number,
+    src.old_reference_number,
+    CAST(REPLACE(sc.time_deposit_amount, ',', '') AS DECIMAL(20,2)) AS time_deposit_amount,
+    sc.time_deposit_account_number, 
+    src.settlement_account_number, 
+    src.frequency,
+    CAST(sc.interest_accrued_till_date AS DECIMAL(20,2)) AS interest_accrued_till_date, 
+    CAST(REPLACE(sc.interest_at_maturity, '''', '') AS DECIMAL(20,2)) AS interest_at_maturity,
+    sc.branch, 
+    src.trade_type, 
+    src.funding_source, 
+    snc.obs_code, 
+    sc.sun_id, 
+    sc.client_name, 
+    src.account_official_name,
+    CAST(sc.done_time AS TIMESTAMP) AS done_time, 
+    CAST(sc.update_time AS TIMESTAMP) AS update_time
+FROM deposit.ste_td_rollever sc
+LEFT JOIN deposit.new_td_rollover tgt
+ON tgt.trade_number = sc.trade_number
+WHERE tgt.trade_number IS NULL
+ON CONFLICT (trade_number) 
+DO UPDATE SET
+    investment_type = EXCLUDED.investment_type,
+    start_date = EXCLUDED.start_date,
+    maturity_date = EXCLUDED.maturity_date,
+    tenor = EXCLUDED.tenor,
+    currency = EXCLUDED.currency,
+    interest_rate = EXCLUDED.interest_rate,
+    maturity_status = EXCLUDED.maturity_status,
+    reference_number = EXCLUDED.reference_number,
+    old_reference_number = EXCLUDED.old_reference_number,
+    time_deposit_amount = EXCLUDED.time_deposit_amount,
+    time_deposit_account_number = EXCLUDED.time_deposit_account_number,
+    settlement_account_number = EXCLUDED.settlement_account_number,
+    frequency = EXCLUDED.frequency,
+    interest_accrued_till_date = EXCLUDED.interest_accrued_till_date,
+    interest_at_maturity = EXCLUDED.interest_at_maturity,
+    branch = EXCLUDED.branch,
+    trade_type = EXCLUDED.trade_type,
+    funding_source = EXCLUDED.funding_source,
+    obs_code = EXCLUDED.obs_code,
+    sun_id = EXCLUDED.sun_id,
+    client_name = EXCLUDED.client_name,
+    account_official_name = EXCLUDED.account_official_name,
+    done_time = EXCLUDED.done_time,
+    update_time = EXCLUDED.update_time;
+```
