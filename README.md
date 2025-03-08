@@ -24,7 +24,7 @@ INSERT INTO branch_information (branch_id, branch_code, description) VALUES (890
 
 ```
 MERGE INTO deposit.new_td_rollover tgt
-USING deposit.ste_td_rollever src
+USING deposit.stg_td_rollover src
 ON tgt.trade_number = src.trade_number
 WHEN MATCHED THEN
     UPDATE SET 
@@ -73,6 +73,7 @@ WHEN NOT MATCHED THEN
         src.obs_code, src.sun_id, src.client_name, src.account_official_name,
         CAST(src.done_time AS TIMESTAMP), CAST(src.update_time AS TIMESTAMP)
     );
+
 ```
 ```
 INSERT INTO deposit.new_td_rollover (
@@ -107,7 +108,7 @@ SELECT
     src.account_official_name,
     CAST(sc.done_time AS TIMESTAMP) AS done_time, 
     CAST(sc.update_time AS TIMESTAMP) AS update_time
-FROM deposit.ste_td_rollever sc
+FROM deposit.stg_td_rollover sc
 LEFT JOIN deposit.new_td_rollover tgt
 ON tgt.trade_number = sc.trade_number
 WHERE tgt.trade_number IS NULL
@@ -137,4 +138,5 @@ DO UPDATE SET
     account_official_name = EXCLUDED.account_official_name,
     done_time = EXCLUDED.done_time,
     update_time = EXCLUDED.update_time;
+
 ```
