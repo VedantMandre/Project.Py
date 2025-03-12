@@ -64,12 +64,10 @@ BEGIN
         CAST(src.update_time AS timestamp) AS update_time
     FROM 
         deposit.stg_td_rollover src
+    LEFT JOIN 
+        deposit.new_td_rollover tgt ON tgt.trade_number = src.trade_number
     WHERE 
-        NOT EXISTS (
-            SELECT 1
-            FROM deposit.new_td_rollover tgt
-            WHERE tgt.trade_number = src.trade_number
-        );
+        tgt.trade_number IS NULL;
     
     -- Raise notice on successful completion
     RAISE NOTICE 'INCREMENTAL LOAD SUCCESSFULLY COMPLETED';
@@ -78,6 +76,23 @@ EXCEPTION
     WHEN OTHERS THEN
         -- Log the error and rethrow
         RAISE NOTICE 'Error occurred during delta load: %', SQLERRM;
+        RAISE;
+END;
+$$;
+```
+
+```
+CREATE OR REPLACE PROCEDURE usp_delta_load_rollover()
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RAISE NOTICE 'Starting procedure execution';
+    -- Add your main logic here
+    RAISE NOTICE 'Procedure completed successfully';
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error in procedure: %', SQLERRM;
         RAISE;
 END;
 $$;
