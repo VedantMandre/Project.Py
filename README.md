@@ -28,7 +28,7 @@ LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    -- Insert new records from staging table to target table
+    -- Simple insert with a join approach instead of NOT EXISTS
     INSERT INTO deposit.new_td_rollover
     (trade_number, investment_type, start_date, maturity_date, tenor, currency, interest_rate,
      maturity_status, reference_number, old_reference_number, time_deposit_amount,
@@ -37,46 +37,37 @@ BEGIN
      obs_code, sun_id, client_name, account_official_name, done_time, update_time)
     
     SELECT 
-        src.trade_number,
-        src.investment_type,
-        CAST(src.start_date AS date) AS start_date,
-        CAST(src.maturity_date AS date) AS maturity_date,
-        CAST(src.tenor AS integer) AS tenor,
-        src.currency,
-        CAST(src.interest_rate AS decimal(20,2)) AS interest_rate,
-        CAST(src.maturity_status AS varchar) AS maturity_status,
-        CAST(src.reference_number AS integer) AS reference_number,
-        src.old_reference_number,
-        CAST(src.time_deposit_amount AS integer) AS time_deposit_number,
-        src.time_deposit_account_number,
-        src.settlement_account_number,
-        src.frequency,
-        CAST(src.interest_accrued_till_date AS numeric) AS interest_accrued_till_date,
-        CAST(src.interest_at_maturity AS integer) AS interest_at_maturity,
-        src.branch,
-        src.trade_type,
-        src.funding_source,
-        src.obs_code,
-        src.sun_id,
-        src.client_name,
-        src.account_official_name,
-        CAST(src.done_time AS timestamp) AS done_time,
-        CAST(src.update_time AS timestamp) AS update_time
+        s.trade_number,
+        s.investment_type,
+        s.start_date::date AS start_date,
+        s.maturity_date::date AS maturity_date,
+        s.tenor::integer AS tenor,
+        s.currency,
+        s.interest_rate::decimal(20,2) AS interest_rate,
+        s.maturity_status::varchar AS maturity_status,
+        s.reference_number::integer AS reference_number,
+        s.old_reference_number,
+        s.time_deposit_amount::integer AS time_deposit_number,
+        s.time_deposit_account_number,
+        s.settlement_account_number,
+        s.frequency,
+        s.interest_accrued_till_date::numeric AS interest_accrued_till_date,
+        s.interest_at_maturity::integer AS interest_at_maturity,
+        s.branch,
+        s.trade_type,
+        s.funding_source,
+        s.obs_code,
+        s.sun_id,
+        s.client_name,
+        s.account_official_name,
+        s.done_time::timestamp AS done_time,
+        s.update_time::timestamp AS update_time
     FROM 
-        deposit.stg_td_rollover src
-    LEFT JOIN 
-        deposit.new_td_rollover tgt ON tgt.trade_number = src.trade_number
-    WHERE 
-        tgt.trade_number IS NULL;
+        deposit.stg_td_rollover s
+    WHERE
+        s.trade_number NOT IN (SELECT trade_number FROM deposit.new_td_rollover);
     
-    -- Raise notice on successful completion
     RAISE NOTICE 'INCREMENTAL LOAD SUCCESSFULLY COMPLETED';
-    
-EXCEPTION
-    WHEN OTHERS THEN
-        -- Log the error and rethrow
-        RAISE NOTICE 'Error occurred during delta load: %', SQLERRM;
-        RAISE;
 END;
 $$;
 ```
