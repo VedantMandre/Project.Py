@@ -28,7 +28,7 @@ LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    -- Simple insert with a join approach instead of NOT EXISTS
+    -- Insert with NOT EXISTS for better reliability and performance
     INSERT INTO deposit.new_td_rollover
     (trade_number, investment_type, start_date, maturity_date, tenor, currency, interest_rate,
      maturity_status, reference_number, old_reference_number, time_deposit_amount,
@@ -47,7 +47,7 @@ BEGIN
         s.maturity_status::varchar AS maturity_status,
         s.reference_number::integer AS reference_number,
         s.old_reference_number,
-        s.time_deposit_amount::integer AS time_deposit_number,
+        s.time_deposit_amount::integer AS time_deposit_amount, -- Fixed typo in alias
         s.time_deposit_account_number,
         s.settlement_account_number,
         s.frequency,
@@ -64,27 +64,14 @@ BEGIN
         s.update_time::timestamp AS update_time
     FROM 
         deposit.stg_td_rollover s
-    WHERE
-        s.trade_number NOT IN (SELECT trade_number FROM deposit.new_td_rollover);
+    WHERE NOT EXISTS (
+        SELECT 1 
+        FROM deposit.new_td_rollover n 
+        WHERE n.trade_number = s.trade_number
+    );
     
     RAISE NOTICE 'INCREMENTAL LOAD SUCCESSFULLY COMPLETED';
 END;
 $$;
 ```
 
-```
-CREATE OR REPLACE PROCEDURE usp_delta_load_rollover()
-LANGUAGE plpgsql
-AS
-$$
-BEGIN
-    RAISE NOTICE 'Starting procedure execution';
-    -- Add your main logic here
-    RAISE NOTICE 'Procedure completed successfully';
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error in procedure: %', SQLERRM;
-        RAISE;
-END;
-$$;
-```
