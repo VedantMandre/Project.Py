@@ -136,3 +136,18 @@ DO UPDATE SET
     done_time = EXCLUDED.done_time,
     update_time = EXCLUDED.update_time;
 ```
+```
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-resources-plugin</artifactId>
+    <version>2.6</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact-manager</artifactId>
+            <version>2.0.6</version>
+            <scope>provided</scope> <!-- Prevents the artifact from being fetched -->
+        </dependency>
+    </dependencies>
+</plugin>
+```
