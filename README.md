@@ -137,17 +137,26 @@ DO UPDATE SET
     update_time = EXCLUDED.update_time;
 ```
 ```
-<plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-resources-plugin</artifactId>
-    <version>2.6</version>
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-artifact-manager</artifactId>
-            <version>2.0.6</version>
-            <scope>provided</scope> <!-- Prevents the artifact from being fetched -->
-        </dependency>
-    </dependencies>
-</plugin>
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>3.3.1</version>  <!-- Recommended Upgrade -->
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.maven</groupId>
+                    <artifactId>maven-artifact-manager</artifactId>
+                    <version>2.0.6</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.maven</groupId>
+                            <artifactId>maven-artifact-manager</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </plugin>
+    </plugins>
+</build>
 ```
