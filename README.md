@@ -160,3 +160,9 @@ DO UPDATE SET
     </plugins>
 </build>
 ```
+```
+<rollback>
+        DELETE FROM reference.branch_details 
+        WHERE branch_id IN (7832, 7860, 8801, 8802, 8804, 8807, 8100, 8792, 8815, 8816, 8872, 8874, 8881, 8902);
+    </rollback>
+```
