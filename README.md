@@ -67,7 +67,5 @@ CREATE TABLE IF NOT EXISTS payment.beneficiaries (
 
 ```
 ```
-                CONSTRAINT fk_payment_beneficiaries_bank_id
-                    FOREIGN KEY (bank_id)
-                    REFERENCES payment.beneficiary_bank(bank_id)
+bank_id BIGINT REFERENCES payment.beneficiary_bank(bank_id) NOT NULL
 ```
