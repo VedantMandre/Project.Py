@@ -127,3 +127,23 @@ WHERE tdr.reference_number = rtd.old_reference_number
 AND tdr.maturity_status <> 'Finalized';  -- Only update if not already finalized
 
 ```
+```
+SELECT 
+    otd.trade_number,
+    otd.reference_number AS new_reference_number,
+    otd.old_reference_number,
+    otd.time_deposit_amount,
+    otd.maturity_date,
+    otd.currency,
+    tdr.reference_number AS matched_reference_number,
+    tdr.maturity_status,
+    -- Mark as Finalized if old_reference_number matches reference_number
+    CASE 
+        WHEN otd.old_reference_number = tdr.reference_number THEN 'Finalized' 
+        ELSE tdr.maturity_status 
+    END AS updated_maturity_status
+FROM deposit.test_recon_obs_time_deposit_data otd
+LEFT JOIN deposit.test_recon_time_deposit_rollover tdr
+    ON otd.old_reference_number = tdr.reference_number
+WHERE otd.old_reference_number IS NOT NULL;
+```
