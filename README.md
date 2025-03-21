@@ -69,3 +69,25 @@ CREATE TABLE IF NOT EXISTS payment.beneficiaries (
 ```
 bank_id BIGINT REFERENCES payment.beneficiary_bank(bank_id) NOT NULL
 ```
+```
+SELECT 
+    otd.trade_number,
+    otd.reference_number AS new_reference_number,
+    otd.old_reference_number AS old_reference_number,
+    otd.time_deposit_amount,
+    otd.maturity_date,
+    otd.currency,
+    tdr.trade_number AS rollover_trade_number,
+    tdr.reference_number AS rollover_reference_number,
+    tdr.principal_amount,
+    tdr.maturity_date AS rollover_maturity_date,
+    tdr.currency_code AS rollover_currency
+FROM 
+    deposit.test_recon_obs_time_deposit_data otd
+LEFT JOIN 
+    deposit.test_recon_time_deposit_rollover tdr
+ON 
+    otd.old_reference_number = tdr.reference_number
+WHERE 
+    otd.old_reference_number IS NOT NULL;
+```
