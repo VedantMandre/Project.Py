@@ -91,3 +91,31 @@ ON
 WHERE 
     otd.old_reference_number IS NOT NULL;
 ```
+```
+SELECT 
+    otd.trade_number AS new_trade_number,
+    otd.reference_number AS new_reference_number,
+    otd.old_reference_number AS old_reference_number,
+    otd.time_deposit_amount AS new_time_deposit_amount,
+    otd.maturity_date AS new_maturity_date,
+    otd.currency AS new_currency,
+    otd.interest_accrued_till_date AS new_interest_accrued,
+    otd.interest_at_maturity AS new_interest_at_maturity,
+    
+    tdr.trade_number AS old_trade_number,
+    tdr.reference_number AS rollover_reference_number,
+    tdr.principal_amount AS old_principal_amount,
+    tdr.maturity_date AS old_maturity_date,
+    tdr.currency_code AS old_currency,
+    tdr.accrued_interest AS old_accrued_interest,
+    tdr.interest_amount AS old_interest_amount,
+    tdr.maturity_status AS rollover_status
+FROM 
+    deposit.test_recon_obs_time_deposit_data otd
+LEFT JOIN 
+    deposit.test_recon_time_deposit_rollover tdr
+ON 
+    otd.old_reference_number = tdr.reference_number
+WHERE 
+    otd.old_reference_number IS NOT NULL;
+```
