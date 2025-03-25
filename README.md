@@ -178,6 +178,8 @@ WHERE old_reference_number IS NOT NULL
 ON CONFLICT (reference_number) 
 DO UPDATE SET status = 'Finalized';
 
+
+
 ```
 ```
 CREATE OR REPLACE PROCEDURE sp_upsert_finalize_status()
@@ -218,4 +220,11 @@ BEGIN
     AND (tdr.status IS DISTINCT FROM 'Finalized'); -- Only update if it's not already 'Finalized'
 END;
 $$;
+```
+```
+INSERT INTO deposit.test_recon_time_deposit_rollover (reference_number, status)
+SELECT old_reference_number, 'Pending'  -- Setting initial status to 'Pending'
+FROM deposit.test_recon_obs_time_deposit_data
+WHERE old_reference_number IS NOT NULL
+LIMIT 5;  -- Adjust the limit as needed
 ```
