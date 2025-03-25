@@ -151,11 +151,19 @@ AS $$
 BEGIN
     UPDATE deposit.test_recon_time_deposit_rollover tdr
     SET status = 'Finalized'
-    WHERE TRIM(tdr.reference_number) IN (
-        SELECT TRIM(old_reference_number)
+    WHERE tdr.reference_number IN (
+        SELECT old_reference_number
         FROM deposit.test_recon_obs_time_deposit_data
         WHERE old_reference_number IS NOT NULL
     ) AND (tdr.status IS NULL OR tdr.status <> 'Finalized');
 END;
 $$;
+
+
+
+SELECT reference_number, old_reference_number
+FROM deposit.test_recon_time_deposit_rollover tdr
+JOIN deposit.test_recon_obs_time_deposit_data obs
+ON tdr.reference_number = obs.old_reference_number;
+
 ```
