@@ -145,6 +145,16 @@ WHERE TRIM(tdr.reference_number) IN (
 
 ```
 ```
+UPDATE deposit.test_recon_time_deposit_rollover tdr
+SET status = 'Pending'
+WHERE TRIM(tdr.reference_number) IN (
+    SELECT TRIM(old_reference_number)
+    FROM deposit.test_recon_obs_time_deposit_data
+    WHERE old_reference_number IS NOT NULL
+) AND tdr.status = 'Finalized';
+
+```
+```
 SELECT reference_number, status
 FROM deposit.test_recon_time_deposit_rollover
 WHERE status = 'Finalized';
