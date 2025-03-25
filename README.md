@@ -159,6 +159,9 @@ BEGIN
 END;
 $$;
 
+UPDATE deposit.test_recon_time_deposit_rollover 
+SET status = NULL 
+WHERE status = 'Finalized';
 
 
 SELECT reference_number, old_reference_number
