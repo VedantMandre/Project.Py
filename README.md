@@ -117,7 +117,10 @@ WHERE otd.old_reference_number IS NOT NULL;
 UPDATE deposit.test_recon_time_deposit_rollover tdr
 SET status = 'Finalized'
 WHERE TRIM(tdr.reference_number) IN (
-    SELECT TRIM
+    SELECT TRIM(old_reference_number)
+    FROM deposit.test_recon_obs_time_deposit_data
+    WHERE old_reference_number IS NOT NULL
+) AND (tdr.status IS NULL OR tdr.status <> 'Finalized');
 
 ```
 ```
