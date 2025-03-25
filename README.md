@@ -164,14 +164,14 @@ BEGIN
 
     RAISE NOTICE 'Number of matches found: %', match_count;
 
-    -- Step 2: Update status to 'Pending' for matching records
+    -- Step 2: Update status to 'Finalized' for matching records
     UPDATE deposit.test_recon_time_deposit_rollover tdr
-    SET status = 'Pending'
+    SET status = 'Finalized'
     WHERE TRIM(tdr.reference_number) IN (
         SELECT TRIM(old_reference_number)
         FROM deposit.test_recon_obs_time_deposit_data
         WHERE old_reference_number IS NOT NULL
-    ) AND (tdr.status IS NULL OR tdr.status <> 'Pending');
+    );
 
     -- Step 3: Debug - Count the number of updated rows
     GET DIAGNOSTICS updated_count = ROW_COUNT;
