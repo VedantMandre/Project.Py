@@ -77,21 +77,7 @@ DECLARE
     match_count INTEGER;
     updated_count INTEGER;
 BEGIN
-    -- Step 1: Clean up the rollover table (delete extra rows to retain original 20 rows)
-    -- Delete rows with reference_number matching old_reference_number
-    DELETE FROM deposit.test_recon_time_deposit_rollover tdr
-    WHERE tdr.reference_number IN (
-        SELECT old_reference_number
-        FROM deposit.test_recon_obs_time_deposit_data
-        WHERE old_reference_number IS NOT NULL
-    );
-
-    -- Delete excess NULL reference_number rows to bring total down to 20
-    DELETE FROM deposit.test_recon_time_deposit_rollover
-    WHERE reference_number IS NULL
-    AND (SELECT COUNT(*) FROM deposit.test_recon_time_deposit_rollover WHERE reference_number IS NULL) > 20;
-
-    -- Step 2: Debug - Count the number of matches
+    -- Step 1: Debug - Count the number of matches
     SELECT COUNT(*)
     INTO match_count
     FROM deposit.test_recon_time_deposit_rollover tdr
@@ -103,20 +89,20 @@ BEGIN
 
     RAISE NOTICE 'Number of matches found: %', match_count;
 
-    -- Step 3: Update status to 'Finalized' for matching records
+    -- Step 2: Update status to 'Pending' for matching records
     UPDATE deposit.test_recon_time_deposit_rollover tdr
-    SET status = 'Finalized'
+    SET status = 'Pending'
     WHERE TRIM(tdr.reference_number) IN (
         SELECT TRIM(old_reference_number)
         FROM deposit.test_recon_obs_time_deposit_data
         WHERE old_reference_number IS NOT NULL
-    ) AND (tdr.status IS NULL OR tdr.status <> 'Finalized');
+    ) AND (tdr.status IS NULL OR tdr.status <> 'Pending');
 
-    -- Step 4: Debug - Count the number of updated rows
+    -- Step 3: Debug - Count the number of updated rows
     GET DIAGNOSTICS updated_count = ROW_COUNT;
     RAISE NOTICE 'Number of rows updated: %', updated_count;
 
-    -- Step 5: Commit the changes
+    -- Step 4: Commit the changes
     COMMIT;
 EXCEPTION
     WHEN OTHERS THEN
@@ -125,7 +111,6 @@ EXCEPTION
         RAISE EXCEPTION 'Error occurred: %', SQLERRM;
 END;
 $$;
-
 ```
 ```
 SELECT tdr.reference_number, tdr.status, otd.old_reference_number
