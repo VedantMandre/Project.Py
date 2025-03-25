@@ -203,3 +203,19 @@ BEGIN
 END;
 $$;
 ```
+```
+CREATE OR REPLACE PROCEDURE sp_finalize_matched_records()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE deposit.test_recon_time_deposit_rollover tdr
+    SET status = 'Finalized'
+    WHERE EXISTS (
+        SELECT 1 
+        FROM deposit.test_recon_obs_time_deposit_data obs
+        WHERE obs.old_reference_number = tdr.reference_number
+    )
+    AND (tdr.status IS DISTINCT FROM 'Finalized'); -- Only update if it's not already 'Finalized'
+END;
+$$;
+```
