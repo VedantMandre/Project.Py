@@ -171,26 +171,11 @@ ON tdr.reference_number = obs.old_reference_number;
 
 ```
 ```
-CREATE OR REPLACE PROCEDURE sp_upsert_finalize_status()
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    -- Update status to 'Finalized' if reference number exists in the other table
-    UPDATE deposit.test_recon_time_deposit_rollover tdr
-    SET status = 'Finalized'
-    WHERE tdr.reference_number IN (
-        SELECT old_reference_number
-        FROM deposit.test_recon_obs_time_deposit_data
-        WHERE old_reference_number IS NOT NULL
-    );
+INSERT INTO deposit.test_recon_time_deposit_rollover (reference_number, status)
+SELECT old_reference_number, 'Finalized'
+FROM deposit.test_recon_obs_time_deposit_data
+WHERE old_reference_number IS NOT NULL
+ON CONFLICT (reference_number) 
+DO UPDATE SET status = 'Finalized';
 
-    -- If the reference_number does not exist in the main table, insert it with 'Finalized' status
-    INSERT INTO deposit.test_recon_time_deposit_rollover (reference_number, status)
-    SELECT old_reference_number, 'Finalized'
-    FROM deposit.test_recon_obs_time_deposit_data
-    WHERE old_reference_number IS NOT NULL
-    ON CONFLICT (reference_number) DO NOTHING;
-    
-END;
-$$;
 ```
