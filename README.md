@@ -116,12 +116,12 @@ WHERE otd.old_reference_number IS NOT NULL;
 ```
 UPDATE deposit.test_recon_time_deposit_rollover tdr
 SET status = 'Finalized'
-WHERE EXISTS (
-    SELECT 1 
-    FROM deposit.test_recon_obs_time_deposit_data otd
-    WHERE otd.old_reference_number = tdr.reference_number
-    AND otd.old_reference_number IS NOT NULL
+WHERE reference_number IN (
+    SELECT old_reference_number 
+    FROM deposit.test_recon_obs_time_deposit_data
+    WHERE old_reference_number IS NOT NULL
 ) AND tdr.status <> 'Finalized';
+
 
 ```
 ```
