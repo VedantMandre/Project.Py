@@ -155,7 +155,7 @@ BEGIN
         SELECT old_reference_number
         FROM deposit.test_recon_obs_time_deposit_data
         WHERE old_reference_number IS NOT NULL
-    ) AND (tdr.status IS NULL OR tdr.status <> 'Finalized');
+    );
 END;
 $$;
 
