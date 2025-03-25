@@ -74,22 +74,34 @@ CREATE OR REPLACE PROCEDURE deposit.sync_time_deposit_rollover()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Update status to 'Finalized' in the rollover table where reference_number matches old_reference_number
-    UPDATE deposit.test_recon_time_deposit_rollover tdr
-    SET 
-        status = 'Finalized'
-    FROM deposit.test_recon_obs_time_deposit_data otd
-    WHERE TRIM(otd.old_reference_number) = TRIM(tdr.reference_number)
-    AND otd.old_reference_number IS NOT NULL
-    AND tdr.reference_number IS NOT NULL;
+    -- Step 1: Debugging - Identify matching records
+    RAISE NOTICE 'Identifying matching reference numbers...';
 
-    -- Commit the changes
-    COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        -- Roll back on error
-        ROLLBACK;
-        RAISE EXCEPTION 'Error occurred: %', SQLERRM;
+    FOR rec IN 
+        SELECT otd.old_reference_number, tdr.reference_number
+        FROM deposit.test_recon_obs_time_deposit_data otd
+        INNER JOIN deposit.test_recon_time_deposit_rollover tdr
+        ON otd.old_reference_number = tdr.reference_number
+        WHERE otd.old_reference_number IS NOT NULL
+    LOOP
+        RAISE NOTICE 'Match found: old_reference_number = %, reference_number = %', 
+                     rec.old_reference_number, rec.reference_number;
+    END LOOP;
+
+    -- Step 2: Update status in test_recon_time_deposit_rollover if reference numbers match
+    RAISE NOTICE 'Updating status for matched records...';
+
+    UPDATE deposit.test_recon_time_deposit_rollover tdr
+    SET status = 'Finalized'
+    WHERE EXISTS (
+        SELECT 1 
+        FROM deposit.test_recon_obs_time_deposit_data otd
+        WHERE otd.old_reference_number = tdr.reference_number
+        AND otd.old_reference_number IS NOT NULL
+    ) AND tdr.status <> 'Finalized';
+
+    -- Completion message
+    RAISE NOTICE 'Status update completed successfully!';
 END;
 $$;
 
