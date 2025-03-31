@@ -1,4 +1,13 @@
 ```
+host=psql-cms-data-sbx-use2.postgres.database.azure.com;
+port=5432;
+database=postgres;
+uid=adfuser;
+pwd=YourSecurePassword;
+encryptionmethod=1;
+validateservercertificate=0;
+```
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
