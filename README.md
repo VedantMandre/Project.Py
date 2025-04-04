@@ -237,3 +237,15 @@ FROM deposit.test_recon_obs_time_deposit_data
 WHERE old_reference_number IS NOT NULL
 LIMIT 5;  -- Adjust the limit as needed
 ```
+```
+UPDATE deposit.test1_recon_time_deposit_rollover tdr
+SET status = 'FINALIZED',
+    updated_by = 'ADF_TD_RECONCILE',
+    updated_at = CURRENT_TIMESTAMP -- Ensure the column name is correct
+WHERE EXISTS (
+    SELECT 1 
+    FROM deposit.test_recon_obs_time_deposit_data obs
+    WHERE obs.old_reference_number = tdr.reference_number
+)
+AND (tdr.status IS DISTINCT FROM 'FINALIZED');
+```
