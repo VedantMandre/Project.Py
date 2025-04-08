@@ -249,3 +249,25 @@ WHERE EXISTS (
 )
 AND (tdr.status IS DISTINCT FROM 'FINALIZED');
 ```
+```
+UPDATE deposit.test1_recon_time_deposit_rollover tdr
+SET 
+    status = CASE 
+        WHEN tdr.status IS DISTINCT FROM 'FINALIZED' THEN 'FINALIZED'
+        ELSE tdr.status 
+    END,
+    updated_by = CASE 
+        WHEN tdr.status IS DISTINCT FROM 'FINALIZED' THEN 'ADF_TD_RECONCILE'
+        ELSE tdr.updated_by 
+    END,
+    updated_at = CASE 
+        WHEN tdr.status IS DISTINCT FROM 'FINALIZED' THEN CURRENT_TIMESTAMP
+        ELSE tdr.updated_at 
+    END
+WHERE EXISTS (
+    SELECT 1 
+    FROM deposit.test_recon_obs_time_deposit_data obs
+    WHERE obs.old_reference_number = tdr.reference_number
+)
+AND tdr.status IS DISTINCT FROM 'FINALIZED';
+```
