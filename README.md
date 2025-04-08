@@ -260,9 +260,9 @@ SET
         WHEN tdr.status IS DISTINCT FROM 'FINALIZED' THEN 'ADF_TD_RECONCILE'
         ELSE tdr.updated_by 
     END,
-    updated_at = CASE 
+    updated_date = CASE 
         WHEN tdr.status IS DISTINCT FROM 'FINALIZED' THEN CURRENT_TIMESTAMP
-        ELSE tdr.updated_at 
+        ELSE tdr.updated_date 
     END
 WHERE EXISTS (
     SELECT 1 
@@ -270,4 +270,5 @@ WHERE EXISTS (
     WHERE obs.old_reference_number = tdr.reference_number
 )
 AND tdr.status IS DISTINCT FROM 'FINALIZED';
+
 ```
