@@ -273,26 +273,10 @@ AND tdr.status IS DISTINCT FROM 'FINALIZED';
 
 ```
 ```
-INSERT INTO deposit.time_deposit_rollover (
-    reference_number,
-    account_no,
-    deposit_amount,
-    interest_rate,
-    start_date,
-    maturity_date,
-    interest_amount,
-    status
-)
-SELECT
-    old_reference_number AS reference_number,
-    account_no,
-    deposit_amount,
-    interest_rate,
-    start_date,
-    maturity_date,
-    interest_amount,
-    'PENDING' AS status
-FROM deposit.obs_time_deposit_data
+INSERT INTO deposit.test_recon_time_deposit_rollover (reference_number, status)
+SELECT old_reference_number, 'Pending'  -- Setting initial status to 'Pending'
+FROM deposit.test_recon_obs_time_deposit_data
 WHERE old_reference_number IS NOT NULL
-LIMIT 1;
+LIMIT 5;  -- Adjust the limit as needed
+
 ```
