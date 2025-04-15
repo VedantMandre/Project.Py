@@ -304,3 +304,36 @@ FROM deposit.time_deposit_rollover
 WHERE reference_number IS NOT NULL
 LIMIT 1;
 ```
+```
+@string(
+    activity('Lookup1').output.value
+    .map(item => {
+        return {
+            specversion: "1.0",
+            type: "timedeposit.rollover.initiated.v1.0.0",
+            source: "cms/banking/timedeposit",
+            id: item.id,
+            time: float(item.time),
+            datacontenttype: "application/json",
+            data: {
+                sunId: item.sun_id,
+                principal: item.principal_amount,
+                currency: item.currency_code,
+                newInterestRate: item.interest_rate,
+                startDate: item.start_date,
+                maturityDate: item.maturity_date,
+                tenorValue: item.tenor,
+                referenceNumber: item.reference_number,
+                settlementAccount: {},
+                maturityOption: item.maturity_option,
+                additionalFunds: {},
+                existingTradeNumber: item.existing_trade_number,
+                status: item.status,
+                branch: item.branch,
+                accountNumberCars: item.account_number_cars,
+                accountOfficialName: item.account_official_name
+            }
+        }
+    })
+)
+```
