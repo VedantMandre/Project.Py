@@ -280,3 +280,27 @@ WHERE old_reference_number IS NOT NULL
 LIMIT 5;  -- Adjust the limit as needed
 
 ```
+```
+INSERT INTO deposit.obs_time_deposit_data (
+    old_reference_number,
+    account_no,
+    deposit_amount,
+    interest_rate,
+    start_date,
+    maturity_date,
+    interest_amount,
+    status
+)
+SELECT
+    reference_number AS old_reference_number,
+    account_no,
+    deposit_amount,
+    interest_rate,
+    start_date,
+    maturity_date,
+    interest_amount,
+    'ROLLED_OVER' AS status
+FROM deposit.time_deposit_rollover
+WHERE reference_number IS NOT NULL
+LIMIT 1;
+```
