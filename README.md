@@ -305,7 +305,30 @@ WHERE reference_number IS NOT NULL
 LIMIT 1;
 ```
 ```
-@json(string({specversion:'1.0',type:'timedeposit.rollover.initiated.v1.0.0',source:'cms/banking/timedeposit',id:activity('Lookup1').output.value[0].id,time:float(activity('Lookup1').output.value[0].time),datacontenttype:'application/json',data:{sunId:activity('Lookup1').output.value[0].sun_id,principal:activity('Lookup1').output.value[0].principal_amount,currency:activity('Lookup1').output.value[0].currency_code,newInterestRate:activity('Lookup1').output.value[0].interest_rate,startDate:activity('Lookup1').output.value[0].start_date,maturityDate:activity('Lookup1').output.value[0].maturity_date,tenorValue:activity('Lookup1').output.value[0].tenor,referenceNumber:activity('Lookup1').output.value[0].reference_number,settlementAccount:{},maturityOption:activity('Lookup1').output.value[0].maturity_option,additionalFunds:{},existingTradeNumber:activity('Lookup1').output.value[0].existing_trade_number,status:activity('Lookup1').output.value[0].status,branch:activity('Lookup1').output.value[0].branch,accountNumberCars:activity('Lookup1').output.value[0].account_number_cars,accountOfficialName:activity('Lookup1').output.value[0].account_official_name}}))
+CREATE TABLE payment_reject_reason_code (
+    reject_code   VARCHAR(30) PRIMARY KEY, -- Short standardized code (enum-style)
+    description   TEXT NOT NULL,           -- UI text
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by    VARCHAR(100),
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by    VARCHAR(100)
+);
+INSERT INTO payment_reject_reason_code 
+(reject_code, description, created_at, created_by, updated_at, updated_by) 
+VALUES
+('INC_PAY_AMT', 'Incorrect Payment Amount', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_DEBIT_ACC', 'Incorrect Debit Account', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_VAL_DATE', 'Incorrect Value Date', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_CURR', 'Incorrect Payment Currency', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_REF', 'Incorrect Reference for Beneficiary', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_NAME', 'Incorrect Beneficiary Name', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_ACC', 'Incorrect Beneficiary Account', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_BIC', 'Incorrect Beneficiary Bank Identifier', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_BANK_NAME', 'Incorrect Beneficiary Bank Name', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_CITY', 'Incorrect Beneficiary City/Town', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_BANK_CITY', 'Incorrect Beneficiary Bank City/Town', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_COUNTRY', 'Incorrect Beneficiary Country', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM'),
+('INC_BEN_BANK_COUNTRY', 'Incorrect Beneficiary Bank Country', CURRENT_TIMESTAMP, 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM');
 
 
 ```
