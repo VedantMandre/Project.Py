@@ -305,7 +305,32 @@ WHERE reference_number IS NOT NULL
 LIMIT 1;
 ```
 ```
-@json(string({specversion:'1.0',type:'timedeposit.rollover.initiated.v1.0.0',source:'cms/banking/timedeposit',id:activity('Lookup1').output.value[0].id,time:float(activity('Lookup1').output.value[0].time),datacontenttype:'application/json',data:{sunId:activity('Lookup1').output.value[0].sun_id,principal:activity('Lookup1').output.value[0].principal_amount,currency:activity('Lookup1').output.value[0].currency_code,newInterestRate:activity('Lookup1').output.value[0].interest_rate,startDate:activity('Lookup1').output.value[0].start_date,maturityDate:activity('Lookup1').output.value[0].maturity_date,tenorValue:activity('Lookup1').output.value[0].tenor,referenceNumber:activity('Lookup1').output.value[0].reference_number,settlementAccount:{},maturityOption:activity('Lookup1').output.value[0].maturity_option,additionalFunds:{},existingTradeNumber:activity('Lookup1').output.value[0].existing_trade_number,status:activity('Lookup1').output.value[0].status,branch:activity('Lookup1').output.value[0].branch,accountNumberCars:activity('Lookup1').output.value[0].account_number_cars,accountOfficialName:activity('Lookup1').output.value[0].account_official_name}}))
-
+<changeSet id="20250424-01-create-enum-reject-reason" author="your_name">
+    <comment>Create ENUM type for reject reasons if not exists</comment>
+    <sql>
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_type WHERE typname = 'reject_reason_enum'
+            ) THEN
+                CREATE TYPE payment.reject_reason_enum AS ENUM (
+                    'INC PAY AMT',
+                    'INC DEBIT ACC',
+                    'INC VAL DATE',
+                    'INC CURR',
+                    'INC REF',
+                    'INC BENE NAME',
+                    'INC BENE ACC',
+                    'INC BENE BIC',
+                    'INC BENE BANK NAME',
+                    'INC BENE CITY',
+                    'INC BENE BANK CITY',
+                    'INC BENE COUNTRY',
+                    'INC BENE BANK COUNTRY'
+                );
+            END IF;
+        END$$;
+    </sql>
+</changeSet>
 
 ```
