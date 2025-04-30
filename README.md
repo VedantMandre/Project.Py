@@ -305,32 +305,16 @@ WHERE reference_number IS NOT NULL
 LIMIT 1;
 ```
 ```
-<changeSet id="20250424-01-create-enum-reject-reason" author="your_name">
-    <comment>Create ENUM type for reject reasons if not exists</comment>
-    <sql>
-        DO $$
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_type WHERE typname = 'reject_reason_enum'
-            ) THEN
-                CREATE TYPE payment.reject_reason_enum AS ENUM (
-                    'INC PAY AMT',
-                    'INC DEBIT ACC',
-                    'INC VAL DATE',
-                    'INC CURR',
-                    'INC REF',
-                    'INC BENE NAME',
-                    'INC BENE ACC',
-                    'INC BENE BIC',
-                    'INC BENE BANK NAME',
-                    'INC BENE CITY',
-                    'INC BENE BANK CITY',
-                    'INC BENE COUNTRY',
-                    'INC BENE BANK COUNTRY'
-                );
-            END IF;
-        END$$;
-    </sql>
-</changeSet>
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        WHERE t.typname = 'order_status'
+    ) THEN
+        CREATE TYPE order_status AS ENUM ('pending', 'approved', 'rejected');
+    END IF;
+END$$;
+
 
 ```
