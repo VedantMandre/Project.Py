@@ -1,4 +1,10 @@
 ```
+isobldgnm VARCHAR GENERATED ALWAYS AS (
+  REGEXP_SUBSTR(swift_structured_address, '\\|IsoBldgNm=([^|]*)', 1, 1, NULL, 1)
+) STORED
+
+```
+```
 host=psql-cms-data-sbx-use2.postgres.database.azure.com;
 port=5432;
 database=postgres;
