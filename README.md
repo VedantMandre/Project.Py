@@ -1,7 +1,28 @@
 ```
-isobldgnm VARCHAR GENERATED ALWAYS AS (
-  REGEXP_SUBSTR(swift_structured_address, '\\|IsoBldgNm=([^|]*)', 1, 1, NULL, 1)
-) STORED
+<changeSet id="CMT-3101" author="vmandre">
+    <!-- Only drop the constraint if it exists -->
+    <preConditions onFail="MARK_RAN">
+        <uniqueConstraintExists 
+            tableName="beneficiaries"
+            columnNames="sun_id"
+            schemaName="payment"/>
+    </preConditions>
+
+    <!-- Remove the unique constraint -->
+    <dropUniqueConstraint 
+        tableName="beneficiaries"
+        constraintName="beneficiaries_sun_id_key"
+        schemaName="payment"/>
+
+    <!-- Rollback: Recreate the unique constraint -->
+    <rollback>
+        <addUniqueConstraint 
+            columnNames="sun_id" 
+            tableName="beneficiaries"
+            schemaName="payment" 
+            constraintName="beneficiaries_sun_id_key"/>
+    </rollback>
+</changeSet>
 
 ```
 ```
