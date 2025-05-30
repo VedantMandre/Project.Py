@@ -1,4 +1,11 @@
 ```
+INSERT INTO reference.pipeline_runs (process_name, source_system, last_run)
+VALUES ('company_information', 'PROFILE', now() AT TIME ZONE 'UTC')
+ON CONFLICT (process_name, source_system)
+DO UPDATE SET last_run = EXCLUDED.last_run;
+
+```
+```
 <changeSet id="CMT-3101" author="vmandre">
     <!-- Only drop the constraint if it exists -->
     <preConditions onFail="MARK_RAN">
