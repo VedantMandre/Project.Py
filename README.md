@@ -1,354 +1,92 @@
 ```
-INSERT INTO reference.pipeline_runs (process_name, source_system, last_run)
-VALUES ('company_information', 'PROFILE', now() AT TIME ZONE 'UTC')
-ON CONFLICT (process_name, source_system)
-DO UPDATE SET last_run = EXCLUDED.last_run;
+Summary of Missing Foreign Keys by Table
+🔷 group_users (group_id, user_id)
+🧩 Likely composite PK: (group_id, user_id)
 
-```
-```
-<changeSet id="CMT-3101" author="vmandre">
-    <!-- Only drop the constraint if it exists -->
-    <preConditions onFail="MARK_RAN">
-        <uniqueConstraintExists 
-            tableName="beneficiaries"
-            columnNames="sun_id"
-            schemaName="payment"/>
-    </preConditions>
+❌ Missing FKs
 
-    <!-- Remove the unique constraint -->
-    <dropUniqueConstraint 
-        tableName="beneficiaries"
-        constraintName="beneficiaries_sun_id_key"
-        schemaName="payment"/>
+Column	References	Type
+group_id	groups(group_id)	Individual FK
+user_id	users(user_id)	Individual FK
 
-    <!-- Rollback: Recreate the unique constraint -->
-    <rollback>
-        <addUniqueConstraint 
-            columnNames="sun_id" 
-            tableName="beneficiaries"
-            schemaName="payment" 
-            constraintName="beneficiaries_sun_id_key"/>
-    </rollback>
-</changeSet>
+➡️ Must define two individual FKs (different parent tables).
 
-```
-```
-host=psql-cms-data-sbx-use2.postgres.database.azure.com;
-port=5432;
-database=postgres;
-uid=adfuser;
-pwd=YourSecurePassword;
-encryptionmethod=1;
-validateservercertificate=0;
-```
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
+🔷 group_services (group_id, service_id)
+🧩 Likely composite PK: (group_id, service_id)
 
-    <!-- Bank Details Table -->
-    <changeSet id="create-bank-details-table" author="developer">
-        <sql>
-CREATE TABLE IF NOT EXISTS payment.bank_details (
-    bank_id BIGINT NOT NULL PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    identifier VARCHAR,
-    department VARCHAR,
-    street_name VARCHAR,
-    building_number VARCHAR,
-    building_name VARCHAR,
-    floor VARCHAR,
-    po_box VARCHAR,
-    postal_code VARCHAR,
-    city VARCHAR NOT NULL,
-    town_location VARCHAR,
-    district VARCHAR,
-    state_province VARCHAR,
-    country VARCHAR NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_by VARCHAR,
-    created_at TIMESTAMP DEFAULT now(),
-    updated_by VARCHAR,
-    updated_at TIMESTAMP DEFAULT now()
-);
-        </sql>
-    </changeSet>
+❌ Missing FKs
 
-    <!-- Beneficiary Details Table -->
-    <changeSet id="create-beneficiary-details-table" author="developer">
-        <sql>
-CREATE TABLE IF NOT EXISTS payment.beneficiaries (
-    beneficiary_id BIGINT NOT NULL PRIMARY KEY,
-    bank_id BIGINT NOT NULL,
-    branch_id VARCHAR,
-    sun_id VARCHAR UNIQUE NOT NULL,
-    name VARCHAR NOT NULL,
-    account_number VARCHAR NOT NULL,
-    organization VARCHAR,
-    department VARCHAR,
-    street_name VARCHAR,
-    building_number VARCHAR,
-    building_name VARCHAR,
-    floor VARCHAR,
-    po_box VARCHAR,
-    postal_code VARCHAR,
-    city VARCHAR NOT NULL,
-    town_location VARCHAR,
-    district VARCHAR,
-    state_province VARCHAR,
-    country VARCHAR NOT NULL,
-    status VARCHAR NOT NULL,
-    tags JSONB,
-    comments VARCHAR,
-    CONSTRAINT fk_payment_beneficiaries_bank_id FOREIGN KEY (bank_id) REFERENCES payment.bank_details(bank_id)
-);
-        </sql>
-    </changeSet>
-</databaseChangeLog>
+Column	References	Type
+group_id	groups(group_id)	Individual FK
+service_id	service_products(service_id)	Individual FK (assuming it exists)
 
-```
-```
-bank_id BIGINT REFERENCES payment.beneficiary_bank(bank_id) NOT NULL
-```
-```
-CREATE OR REPLACE PROCEDURE deposit.sync_time_deposit_rollover()
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    match_count INTEGER;
-    updated_count INTEGER;
-BEGIN
-    -- Step 1: Debug - Count the number of matches
-    SELECT COUNT(*)
-    INTO match_count
-    FROM deposit.test_recon_time_deposit_rollover tdr
-    WHERE TRIM(tdr.reference_number) IN (
-        SELECT TRIM(old_reference_number)
-        FROM deposit.test_recon_obs_time_deposit_data
-        WHERE old_reference_number IS NOT NULL
-    );
+🔷 user_services_view (user_id, branch_id, service_id)
+🧩 Appears to be a view-like table (not a true relation)
 
-    RAISE NOTICE 'Number of matches found: %', match_count;
+❌ No FKs
 
-    -- Step 2: Update status to 'Pending' for matching records
-    UPDATE deposit.test_recon_time_deposit_rollover tdr
-    SET status = 'Pending'
-    WHERE TRIM(tdr.reference_number) IN (
-        SELECT TRIM(old_reference_number)
-        FROM deposit.test_recon_obs_time_deposit_data
-        WHERE old_reference_number IS NOT NULL
-    ) AND (tdr.status IS NULL OR tdr.status <> 'Pending');
+Column	References	Type
+user_id	users(user_id)	Individual FK
+branch_id	likely branch_products.branch_id or some branches table	Individual FK
+service_id	service_products(service_id)	Individual FK
 
-    -- Step 3: Debug - Count the number of updated rows
-    GET DIAGNOSTICS updated_count = ROW_COUNT;
-    RAISE NOTICE 'Number of rows updated: %', updated_count;
+➡️ Requires 3 individual FKs
 
-    -- Step 4: Commit the changes
-    COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        -- Roll back on error
-        ROLLBACK;
-        RAISE EXCEPTION 'Error occurred: %', SQLERRM;
-END;
-$$;
-```
-```
-SELECT tdr.reference_number, tdr.status, otd.old_reference_number
-FROM deposit.test_recon_time_deposit_rollover tdr
-INNER JOIN deposit.test_recon_obs_time_deposit_data otd
-ON otd.old_reference_number = tdr.reference_number
-WHERE otd.old_reference_number IS NOT NULL;
-```
-```
-UPDATE deposit.test_recon_time_deposit_rollover tdr
-SET status = 'Finalized'
-WHERE TRIM(tdr.reference_number) IN (
-    SELECT TRIM(old_reference_number)
-    FROM deposit.test_recon_obs_time_deposit_data
-    WHERE old_reference_number IS NOT NULL
-) AND (tdr.status IS NULL OR tdr.status <> 'Finalized');
+🔷 user_preferences (user_id, type)
+🧩 Likely composite PK: (user_id, type)
 
-```
-```
-UPDATE deposit.test_recon_time_deposit_rollover tdr
-SET status = 'Pending'
-WHERE TRIM(tdr.reference_number) IN (
-    SELECT TRIM(old_reference_number)
-    FROM deposit.test_recon_obs_time_deposit_data
-    WHERE old_reference_number IS NOT NULL
-) AND tdr.status = 'Finalized';
+❌ Missing FKs
 
-```
-```
-SELECT reference_number, status
-FROM deposit.test_recon_time_deposit_rollover
-WHERE status = 'Finalized';
-```
-```
-CREATE OR REPLACE PROCEDURE deposit.sync_time_deposit_rollover()
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE deposit.test_recon_time_deposit_rollover tdr
-    SET status = 'Finalized'
-    WHERE tdr.reference_number IN (
-        SELECT old_reference_number
-        FROM deposit.test_recon_obs_time_deposit_data
-        WHERE old_reference_number IS NOT NULL
-    );
-END;
-$$;
+Column	References	Type
+user_id	users(user_id)	Individual FK
 
-UPDATE deposit.test_recon_time_deposit_rollover 
-SET status = NULL 
-WHERE status = 'Finalized';
+➡️ type is likely enum-style; user_id should have FK
 
+🔷 branch_products (branch_id, product_id)
+🧩 Composite PK
 
-SELECT reference_number, old_reference_number
-FROM deposit.test_recon_time_deposit_rollover tdr
-JOIN deposit.test_recon_obs_time_deposit_data obs
-ON tdr.reference_number = obs.old_reference_number;
+❌ Missing FKs
 
-```
-```
-INSERT INTO deposit.test_recon_time_deposit_rollover (reference_number, status)
-SELECT old_reference_number, 'Finalized'
-FROM deposit.test_recon_obs_time_deposit_data
-WHERE old_reference_number IS NOT NULL
-ON CONFLICT (reference_number) 
-DO UPDATE SET status = 'Finalized';
+Column	References	Type
+branch_id	(missing branches table?)	Individual FK
+product_id	products(product_id)	Individual FK
 
+🔷 company_products (branch_id, sun_id, product_id)
+🧩 Composite PK
 
+❌ Missing FKs
 
-```
-```
-CREATE OR REPLACE PROCEDURE sp_upsert_finalize_status()
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    -- Update status to 'Finalized' if reference number exists in the other table
-    UPDATE deposit.test_recon_time_deposit_rollover tdr
-    SET status = 'Finalized'
-    WHERE tdr.reference_number IN (
-        SELECT old_reference_number
-        FROM deposit.test_recon_obs_time_deposit_data
-        WHERE old_reference_number IS NOT NULL
-    );
+Column	References	Type
+branch_id	branch_products.branch_id (or separate branches)	Individual FK
+sun_id	Used in multiple tables; no clear parent seen	Needs further tracing
+product_id	products(product_id)	Individual FK
 
-    -- If the reference_number does not exist in the main table, insert it with 'Finalized' status
-    INSERT INTO deposit.test_recon_time_deposit_rollover (reference_number, status)
-    SELECT old_reference_number, 'Finalized'
-    FROM deposit.test_recon_obs_time_deposit_data
-    WHERE old_reference_number IS NOT NULL
-    ON CONFLICT (reference_number) DO NOTHING;
-    
-END;
-$$;
-```
-```
-CREATE OR REPLACE PROCEDURE sp_finalize_matched_records()
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE deposit.test_recon_time_deposit_rollover tdr
-    SET status = 'Finalized'
-    WHERE EXISTS (
-        SELECT 1 
-        FROM deposit.test_recon_obs_time_deposit_data obs
-        WHERE obs.old_reference_number = tdr.reference_number
-    )
-    AND (tdr.status IS DISTINCT FROM 'Finalized'); -- Only update if it's not already 'Finalized'
-END;
-$$;
-```
-```
-INSERT INTO deposit.test_recon_time_deposit_rollover (reference_number, status)
-SELECT old_reference_number, 'Pending'  -- Setting initial status to 'Pending'
-FROM deposit.test_recon_obs_time_deposit_data
-WHERE old_reference_number IS NOT NULL
-LIMIT 5;  -- Adjust the limit as needed
-```
-```
-UPDATE deposit.test1_recon_time_deposit_rollover tdr
-SET status = 'FINALIZED',
-    updated_by = 'ADF_TD_RECONCILE',
-    updated_at = CURRENT_TIMESTAMP -- Ensure the column name is correct
-WHERE EXISTS (
-    SELECT 1 
-    FROM deposit.test_recon_obs_time_deposit_data obs
-    WHERE obs.old_reference_number = tdr.reference_number
-)
-AND (tdr.status IS DISTINCT FROM 'FINALIZED');
-```
-```
-UPDATE deposit.test1_recon_time_deposit_rollover tdr
-SET 
-    status = CASE 
-        WHEN tdr.status IS DISTINCT FROM 'FINALIZED' THEN 'FINALIZED'
-        ELSE tdr.status 
-    END,
-    updated_by = CASE 
-        WHEN tdr.status IS DISTINCT FROM 'FINALIZED' THEN 'ADF_TD_RECONCILE'
-        ELSE tdr.updated_by 
-    END,
-    updated_date = CASE 
-        WHEN tdr.status IS DISTINCT FROM 'FINALIZED' THEN CURRENT_TIMESTAMP
-        ELSE tdr.updated_date 
-    END
-WHERE EXISTS (
-    SELECT 1 
-    FROM deposit.test_recon_obs_time_deposit_data obs
-    WHERE obs.old_reference_number = tdr.reference_number
-)
-AND tdr.status IS DISTINCT FROM 'FINALIZED';
+🔷 company_configurations (sun_id, branch_id, product_id)
+🧩 Composite key candidate
 
-```
-```
-INSERT INTO deposit.test_recon_time_deposit_rollover (reference_number, status)
-SELECT old_reference_number, 'Pending'  -- Setting initial status to 'Pending'
-FROM deposit.test_recon_obs_time_deposit_data
-WHERE old_reference_number IS NOT NULL
-LIMIT 5;  -- Adjust the limit as needed
+❌ Missing FKs
 
-```
-```
-INSERT INTO deposit.obs_time_deposit_data (
-    old_reference_number,
-    account_no,
-    deposit_amount,
-    interest_rate,
-    start_date,
-    maturity_date,
-    interest_amount,
-    status
-)
-SELECT
-    reference_number AS old_reference_number,
-    account_no,
-    deposit_amount,
-    interest_rate,
-    start_date,
-    maturity_date,
-    interest_amount,
-    'ROLLED_OVER' AS status
-FROM deposit.time_deposit_rollover
-WHERE reference_number IS NOT NULL
-LIMIT 1;
-```
-```
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_type t
-        WHERE t.typname = 'order_status'
-    ) THEN
-        CREATE TYPE order_status AS ENUM ('pending', 'approved', 'rejected');
-    END IF;
-END$$;
+Column	References	Type
+sun_id	Possibly from user_accounts, unclear	Needs analysis
+branch_id	As above	Individual FK
+product_id	products(product_id)	Individual FK
 
+🔷 user_accounts (user_id, sun_id, branch_id)
+🧩 Probably not a composite PK, but all likely FKs
 
+❌ Missing FKs
+
+Column	References	Type
+user_id	users(user_id)	Individual FK
+sun_id	Ambiguous	Needs further tracing
+branch_id	As above	Individual FK
+
+🔷 user_configurations (user_id, branch_id)
+🧩 Composite PK likely
+
+❌ Missing FKs
+
+Column	References	Type
+user_id	users(user_id)	Individual FK
+branch_id	Likely from branches	Individual FK
 ```
