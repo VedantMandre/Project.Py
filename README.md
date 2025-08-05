@@ -1,92 +1,50 @@
 ```
-Summary of Missing Foreign Keys by Table
-🔷 group_users (group_id, user_id)
-🧩 Likely composite PK: (group_id, user_id)
+-- group_users
+ALTER TABLE administration.group_users
+ADD CONSTRAINT fk_group_users_group_id
+FOREIGN KEY (group_id) REFERENCES administration.groups(group_id);
 
-❌ Missing FKs
+ALTER TABLE administration.group_users
+ADD CONSTRAINT fk_group_users_user_id
+FOREIGN KEY (user_id) REFERENCES administration.users(user_id);
 
-Column	References	Type
-group_id	groups(group_id)	Individual FK
-user_id	users(user_id)	Individual FK
+-- group_services
+ALTER TABLE administration.group_services
+ADD CONSTRAINT fk_group_services_group_id
+FOREIGN KEY (group_id) REFERENCES administration.groups(group_id);
 
-➡️ Must define two individual FKs (different parent tables).
+ALTER TABLE administration.group_services
+ADD CONSTRAINT fk_group_services_service_id
+FOREIGN KEY (service_id) REFERENCES administration.service_products(service_id);
 
-🔷 group_services (group_id, service_id)
-🧩 Likely composite PK: (group_id, service_id)
+-- user_session
+ALTER TABLE administration.user_session
+ADD CONSTRAINT fk_user_session_user_id
+FOREIGN KEY (user_id) REFERENCES administration.users(user_id);
 
-❌ Missing FKs
+-- branch_products
+ALTER TABLE administration.branch_products
+ADD CONSTRAINT fk_branch_products_product_id
+FOREIGN KEY (product_id) REFERENCES administration.products(product_id);
 
-Column	References	Type
-group_id	groups(group_id)	Individual FK
-service_id	service_products(service_id)	Individual FK (assuming it exists)
+-- company_products
+ALTER TABLE administration.company_products
+ADD CONSTRAINT fk_company_products_product_id
+FOREIGN KEY (product_id) REFERENCES administration.products(product_id);
 
-🔷 user_services_view (user_id, branch_id, service_id)
-🧩 Appears to be a view-like table (not a true relation)
+-- company_configurations
+ALTER TABLE administration.company_configurations
+ADD CONSTRAINT fk_company_configurations_product_id
+FOREIGN KEY (product_id) REFERENCES administration.products(product_id);
 
-❌ No FKs
+-- user_accounts
+ALTER TABLE administration.user_accounts
+ADD CONSTRAINT fk_user_accounts_user_id
+FOREIGN KEY (user_id) REFERENCES administration.users(user_id);
 
-Column	References	Type
-user_id	users(user_id)	Individual FK
-branch_id	likely branch_products.branch_id or some branches table	Individual FK
-service_id	service_products(service_id)	Individual FK
+-- user_configurations
+ALTER TABLE administration.user_configurations
+ADD CONSTRAINT fk_user_configurations_user_id
+FOREIGN KEY (user_id) REFERENCES administration.users(user_id);
 
-➡️ Requires 3 individual FKs
-
-🔷 user_preferences (user_id, type)
-🧩 Likely composite PK: (user_id, type)
-
-❌ Missing FKs
-
-Column	References	Type
-user_id	users(user_id)	Individual FK
-
-➡️ type is likely enum-style; user_id should have FK
-
-🔷 branch_products (branch_id, product_id)
-🧩 Composite PK
-
-❌ Missing FKs
-
-Column	References	Type
-branch_id	(missing branches table?)	Individual FK
-product_id	products(product_id)	Individual FK
-
-🔷 company_products (branch_id, sun_id, product_id)
-🧩 Composite PK
-
-❌ Missing FKs
-
-Column	References	Type
-branch_id	branch_products.branch_id (or separate branches)	Individual FK
-sun_id	Used in multiple tables; no clear parent seen	Needs further tracing
-product_id	products(product_id)	Individual FK
-
-🔷 company_configurations (sun_id, branch_id, product_id)
-🧩 Composite key candidate
-
-❌ Missing FKs
-
-Column	References	Type
-sun_id	Possibly from user_accounts, unclear	Needs analysis
-branch_id	As above	Individual FK
-product_id	products(product_id)	Individual FK
-
-🔷 user_accounts (user_id, sun_id, branch_id)
-🧩 Probably not a composite PK, but all likely FKs
-
-❌ Missing FKs
-
-Column	References	Type
-user_id	users(user_id)	Individual FK
-sun_id	Ambiguous	Needs further tracing
-branch_id	As above	Individual FK
-
-🔷 user_configurations (user_id, branch_id)
-🧩 Composite PK likely
-
-❌ Missing FKs
-
-Column	References	Type
-user_id	users(user_id)	Individual FK
-branch_id	Likely from branches	Individual FK
 ```
